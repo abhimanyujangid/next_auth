@@ -1,13 +1,19 @@
 "use client";
-
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { set } from "mongoose";
+import toast from "react-hot-toast";
+import axios from "axios";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [user, setUser] = useState({
     email: "",
     password: "",
   });
+  const [loading, setLoading] = useState(false);
+  const [buttonDisabled, setButtonDisabled] = useState(false);
 
   // Handles changes for both inputs
   const onChangeHandler = (e : React.ChangeEvent<HTMLInputElement>) => {
@@ -15,10 +21,29 @@ export default function LoginPage() {
     setUser({ ...user, [name]: value });
   };
 
+  // Handles login logic
   const onLogin = async () => {
-    // Login logic here (e.g., API call)
-    console.log("User Login Data:", user);
+    try {
+      setLoading(true);
+      const response = await axios.post("/api/users/login", user);
+      toast.success("Login successful");
+      setLoading(false);
+      router.push("/profile");
+    } catch (error) {
+      toast.error("Invalid credentials");
+      console.error(error);
+    }finally{
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    if (user.email.length > 0 && user.password.length > 0) {
+      setButtonDisabled(false);
+    } else {
+      setButtonDisabled(true);
+    }
+  }, [user]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 py-6 px-4 text-gray-800">
@@ -72,8 +97,9 @@ export default function LoginPage() {
           <button
             type="submit"
             className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-300"
+            disabled={buttonDisabled}
           >
-            Log In
+            {loading ? "Loading..." : "Login"}
           </button>
         </form>
         <p className="mt-4 text-sm text-center text-gray-600">
