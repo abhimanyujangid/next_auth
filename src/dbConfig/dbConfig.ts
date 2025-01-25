@@ -1,27 +1,24 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
-/**
- * Connects to the MongoDB database using the MONGODB_URL environment variable.
- * If the connection is successful, logs "Database connected" to the console.
- * If the connection fails, logs the error to the console.
- */
 export async function connect() {
     try {
-        await mongoose.connect(process.env.MONGODB_URL!);
+        mongoose.connect(process.env.MONGODB_URL!);
         const connection = mongoose.connection;
 
-        connection.on('connected',()=>{
-            console.log("Database connected");
+        connection.on('connected', () => {
+            console.log('MongoDB connected successfully');
         })
 
-        connection.on("error", (error) => {
-            console.log("Mongoose connection error" + error);
-            process.exit(1);
-        });
+        connection.on('error', (err) => {
+            console.log('MongoDB connection error. Please make sure MongoDB is running. ' + err);
+            process.exit();
+        })
 
-        console.log("Database connected");
     } catch (error) {
-        console.log("Database connection failed");
+        console.log('Something goes wrong!');
         console.log(error);
+        
     }
+
+
 }

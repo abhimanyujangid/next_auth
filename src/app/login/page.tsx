@@ -1,10 +1,9 @@
 "use client";
-import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { set } from "mongoose";
-import toast from "react-hot-toast";
 import axios from "axios";
+import { toast } from "react-hot-toast";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,105 +11,78 @@ export default function LoginPage() {
     email: "",
     password: "",
   });
-  const [loading, setLoading] = useState(false);
   const [buttonDisabled, setButtonDisabled] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  // Handles changes for both inputs
-  const onChangeHandler = (e : React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setUser({ ...user, [name]: value });
-  };
-
-  // Handles login logic
   const onLogin = async () => {
     try {
       setLoading(true);
       const response = await axios.post("/api/users/login", user);
-      toast.success("Login successful");
-      setLoading(false);
+      console.log("Login success", response.data);
+      toast.success("Login successful!");
       router.push("/profile");
-    } catch (error) {
-      toast.error("Invalid credentials");
-      console.error(error);
-    }finally{
+    } catch (error: any) {
+      console.log("Login failed", error.message);
+      toast.error("Invalid email or password!");
+    } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (user.email.length > 0 && user.password.length > 0) {
-      setButtonDisabled(false);
-    } else {
-      setButtonDisabled(true);
-    }
+    setButtonDisabled(!(user.email && user.password));
   }, [user]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 py-6 px-4 text-gray-800">
-      <div className="bg-white shadow-md rounded-lg p-6 w-full max-w-sm">
-        <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">
-          Login Page
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-800 py-6 px-4 text-gray-600">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-6">
+        <h1 className="text-2xl font-semibold text-center mb-6">
+          {loading ? "Processing..." : "Login"}
         </h1>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            onLogin();
-          }}
-          className="space-y-4"
+        <hr className="mb-6" />
+        <label htmlFor="email" className="block text-sm font-medium mb-2">
+          Email
+        </label>
+        <input
+          className="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring focus:ring-gray-500 text-black"
+          id="email"
+          type="text"
+          value={user.email}
+          onChange={(e) => setUser({ ...user, email: e.target.value })}
+          placeholder="Enter your email"
+        />
+        <label htmlFor="password" className="block text-sm font-medium mb-2">
+          Password
+        </label>
+        <input
+          className="w-full p-3 border border-gray-300 rounded-lg mb-6 focus:outline-none focus:ring focus:ring-gray-500 text-black"
+          id="password"
+          type="password"
+          value={user.password}
+          onChange={(e) => setUser({ ...user, password: e.target.value })}
+          placeholder="Enter your password"
+        />
+        <button
+          onClick={onLogin}
+          disabled={buttonDisabled}
+          className={`w-full p-3 rounded-lg text-white font-semibold ${
+            buttonDisabled
+              ? "bg-gray-300 cursor-not-allowed"
+              : "bg-blue-500 hover:bg-blue-600"
+          }`}
         >
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={user.email}
-              onChange={onChangeHandler}
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter your email"
-              required
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={user.password}
-              onChange={onChangeHandler}
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter your password"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-300"
-            disabled={buttonDisabled}
-          >
-            {loading ? "Loading..." : "Login"}
-          </button>
-        </form>
-        <p className="mt-4 text-sm text-center text-gray-600">
-          Don&apos;t have an account?{" "}
-          <Link href="/signup">
-            <span className="text-blue-600 hover:underline cursor-pointer">
-              SignUp
+          {loading ? "Logging in..." : "Login"}
+        </button>
+        <p className="text-center mt-4 text-sm">
+          Don't have an account?{" "}
+       <Link href="/signup">
+          <span className="text-blue-500 hover:underline cursor-pointer">
+            Register
             </span>
-          </Link>
+            </Link>
         </p>
       </div>
+      <div id="toast-container" />
     </div>
   );
 }
